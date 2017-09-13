@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article# " lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sending BULK DATA using REQUEST LIBRARY | FreeSpace</title>
+<link href="../../assets/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/html4css1.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/nikola_rst.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/code.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/colorbox.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/theme.css" rel="stylesheet" type="text/css">
+<meta name="theme-color" content="#5670d4">
+<meta name="generator" content="Nikola (getnikola.com)">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../../rss.xml">
+<link rel="canonical" href="https://aniketmaithani.net/posts/sending-json-array-using-request-library/">
+<!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]--><meta name="author" content="Aniket Maithani">
+<meta property="og:site_name" content="FreeSpace">
+<meta property="og:title" content="Sending BULK DATA using REQUEST LIBRARY">
+<meta property="og:url" content="https://aniketmaithani.net/posts/sending-json-array-using-request-library/">
+<meta property="og:description" content="Few days back I was fiddling with my Raspberry Pi and found out that when my program sends a POST request it sends around 100 requests on an average. I later found out that for every record that gets ">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2017-09-13T12:17:09Z">
+<meta property="article:tag" content="DRF">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="Requests">
+</head>
+<body>
+<a href="#content" class="sr-only sr-only-focusable">Skip to main content</a>
+
+<!-- Menubar -->
+
+<nav class="navbar navbar-inverse navbar-static-top"><div class="container">
+<!-- This keeps the margins nice -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-navbar" aria-controls="bs-navbar" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="https://aniketmaithani.net/">
+
+                <span id="blog-title">FreeSpace</span>
+            </a>
+        </div>
+<!-- /.navbar-header -->
+        <div class="collapse navbar-collapse" id="bs-navbar" aria-expanded="false">
+            <ul class="nav navbar-nav">
+<li>
+<a href="../../archive.html">Archive</a>
+                </li>
+<li>
+<a href="../../categories/">Tags</a>
+                </li>
+<li>
+<a href="../../rss.xml">RSS feed</a>
+
+                
+            </li>
+</ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+    <a href="index.rst" id="sourcelink">Source</a>
+    </li>
+
+                
+            </ul>
+</div>
+<!-- /.navbar-collapse -->
+    </div>
+<!-- /.container -->
+</nav><!-- End of Menubar --><div class="container" id="content" role="main">
+    <div class="body-content">
+        <!--Body content-->
+        <div class="row">
+            
+            
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article"><header><h1 class="p-name entry-title" itemprop="headline name"><a href="." class="u-url">Sending BULK DATA using REQUEST LIBRARY</a></h1>
+
+        <div class="metadata">
+            <p class="byline author vcard"><span class="byline-name fn" itemprop="author">
+                    Aniket Maithani
+            </span></p>
+            <p class="dateline"><a href="." rel="bookmark"><time class="published dt-published" datetime="2017-09-13T12:17:09Z" itemprop="datePublished" title="2017-09-13 12:17">2017-09-13 12:17</time></a></p>
+                <p class="commentline">
+        
+
+
+            
+        </p>
+<p class="sourceline"><a href="index.rst" class="sourcelink">Source</a></p>
+
+        </div>
+        
+
+    </header><div class="e-content entry-content" itemprop="articleBody text">
+    <div>
+<p>Few days back I was fiddling with my Raspberry Pi and found out that when my program sends a POST request it sends around 100 requests on an average. I later found out that for every record that gets registered on my device [basically some data I am capturing through sensors] it sends POST request for every data recorded! That's insane right!</p>
+<p>For those who are thinking why? Well, let me tell you :</p>
+<ul class="simple">
+<li>Suppose there are 'n' records which are to be sent. Let's say that number in 10000</li>
+<li>Now every POST request takes about 0.5 seconds to complete</li>
+<li>Total Time Elapsed : 0.5 * 10000 = 5000 seconds!!</li>
+</ul>
+<p>Now you get the gravity of the situation.</p>
+<p>And this POST request hit my endpoint <cite>/api/datacollection/</cite> along with the data obviously. Now my tech-stack is Python/Django based and I am using THE AWESOME DRF for creating API's. The only work around I thought of this problem was if by any case I would be able to send data in bulk without fiddling the current <cite>viewset</cite> that I have written.</p>
+<p>Solution -
+1. Override the .create() method
+2. Look for some third party library.</p>
+<p>And voila! I went for the second solution and which was quite easy in nature. Introducing : (Django Rest Framework) [<a class="reference external" href="https://github.com/miki725/django-rest-framework-bulk">https://github.com/miki725/django-rest-framework-bulk</a>] .</p>
+<p>For this I just have to change my viewset to :</p>
+<pre class="code python"><a name="rest_code_6f7d311cc689486a890d4f4f717c948a-1"></a><span class="kn">from</span> <span class="nn">rest_framework_bulk</span> <span class="kn">import</span> <span class="p">(</span> <span class="n">BulkListSerializer</span><span class="p">,</span> <span class="n">BulkSerializerMixin</span><span class="p">,</span> <span class="n">ListBulkCreateUpdateDestroyAPIView</span><span class="p">)</span>
+<a name="rest_code_6f7d311cc689486a890d4f4f717c948a-2"></a>
+<a name="rest_code_6f7d311cc689486a890d4f4f717c948a-3"></a>   <span class="k">class</span> <span class="nc">MyDataViewset</span><span class="p">(</span><span class="n">ListBulkCreateUpdateDestroyAPIView</span><span class="p">):</span>
+</pre>
+<p>And without touching other piece of code it worked just fine :D</p>
+<p>And subsequently I was able to send around 5000 records in around 4.8912 seconds! Haha</p>
+<p>For those who are wondering my json structure was :</p>
+<pre class="code python"><a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-1"></a> <span class="n">data</span> <span class="o">=</span> <span class="p">[</span> <span class="p">{</span><span class="s1">'uid'</span><span class="p">:</span> <span class="s1">'87fbe152-4803-4953-9d76-266078dad892'</span><span class="p">,</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-2"></a> <span class="s1">'count'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-3"></a> <span class="s1">'count_sensor_flips'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-4"></a> <span class="s1">'device_id'</span><span class="p">:</span> <span class="s1">'f72448db-f156-4d50-afc6-ed294509c041'</span><span class="p">,},</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-5"></a><span class="p">{</span><span class="s1">'uid'</span><span class="p">:</span> <span class="s1">'87fbe152-4803-4953-9d76-266078dad892'</span><span class="p">,</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-6"></a> <span class="s1">'count'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-7"></a> <span class="s1">'count_sensor_flips'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-8"></a> <span class="s1">'devce_id'</span><span class="p">:</span> <span class="s1">'f72448db-f156-4d50-afc6-ed294509c041'</span><span class="p">,},</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-9"></a><span class="p">{</span><span class="s1">'uid'</span><span class="p">:</span> <span class="s1">'87fbe152-4803-4953-9d76-266078dad892'</span><span class="p">,</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-10"></a> <span class="s1">'count'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-11"></a> <span class="s1">'count_sensor_flips'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+<a name="rest_code_7b2e534fe2284198b3cbc2f65efdf0e3-12"></a> <span class="s1">'devce_id'</span><span class="p">:</span> <span class="s1">'f72448db-f156-4d50-afc6-ed294509c041'</span><span class="p">,}]</span>
+</pre>
+<p>Finally Goal Achieved.</p>
+<p>Till the next time....ADIOS!</p>
+</div>
+    </div>
+    <aside class="postpromonav"><nav><ul itemprop="keywords" class="tags">
+<li><a class="tag p-category" href="../../categories/drf/" rel="tag">DRF</a></li>
+            <li><a class="tag p-category" href="../../categories/python/" rel="tag">Python</a></li>
+            <li><a class="tag p-category" href="../../categories/requests/" rel="tag">Requests</a></li>
+        </ul></nav></aside><section class="comments hidden-print"><h2>Comments</h2>
+        
+        
+
+
+        </section></article>
+</div>
+        <!--End of body content-->
+
+        <footer id="footer">
+            Contents © 2017         <a href="mailto:maithani.aniket@gmail.com">Aniket Maithani</a> - Powered by         <a href="https://getnikola.com" rel="nofollow">Nikola</a>         
+            
+        </footer>
+</div>
+</div>
+
+
+            <script src="../../assets/js/jquery.min.js"></script><script src="../../assets/js/bootstrap.min.js"></script><script src="../../assets/js/moment-with-locales.min.js"></script><script src="../../assets/js/fancydates.js"></script><script src="../../assets/js/jquery.colorbox-min.js"></script><script>$('a.image-reference:not(.islink) img:not(.islink)').parent().colorbox({rel:"gal",maxWidth:"100%",maxHeight:"100%",scalePhotos:true});</script><!-- fancy dates --><script>
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+    </script><!-- end fancy dates -->
+</body>
+</html>

@@ -1,0 +1,4 @@
+Sitemap: https://aniketmaithani.net/sitemapindex.xml
+
+User-Agent: *
+Host: aniketmaithani.net
